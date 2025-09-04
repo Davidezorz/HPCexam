@@ -1,6 +1,10 @@
 # video
 *.mp4
 
+# data
+data/
+data_parallel/
+
 # Prerequisites
 *.d
 

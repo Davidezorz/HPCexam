@@ -6,9 +6,11 @@
  *  mysizey   :   local y-extension of your patch
  *
  *  INSTRUCTION:
- *  ├── mpicc -fopenmp -o main -Iinclude src/stencil_template_parallel.c
- *  └── mpirun -np 4 ./main  -n 60 -o 0 
- *  └── mpirun -np 4 ./main -x 256 -y 256 -n 100 -o 1 -e 100
+ *  ├── mpicc -fopenmp -o main -Iinclude src/stencil_template_parallel.c -O3
+ *  └── mpirun -np 4 ./main  -n 100 -o 0 
+ *  └── mpirun -np 4 ./main -x 256 -y 256 -n 150 -o 2 -e 175 -E 10 -p 1
+
+ python plot_parallel.py data_parallel -x 256 -y 256 --sx 2 --sy 2 -n 100 --save parallel.mp4
 
  -fopt-info-vec-optimized
  */
@@ -79,6 +81,13 @@ int main(int argc, char **argv)
     return 0;
   }
 
+  printf("\n");
+  printf("%d: N[_x_]: %d,  N[_y_]: %d,    S[_x_]: %d,  S[_y_]: %d\n", 
+    Rank, N[_x_], N[_y_], planes[0].size[_x_], planes[0].size[_y_]);
+  printf("\n");
+  
+  MPI_Barrier(myCOMM_WORLD);
+
   int current = OLD;
   double t1 = MPI_Wtime();   /* take wall-clock time */
   
@@ -129,7 +138,7 @@ int main(int argc, char **argv)
 #pragma omp parallel for schedule(static)
       for (int y = 1; y <= sizey; ++y)
       {
-        __builtin_prefetch(&data_old[IDX(1, y + 16)], 0, 1); 
+        __builtin_prefetch(&data_old[IDX(1, y + 12)], 0, 1); 
         buffers[SEND][WEST][y-1] = data_old[ IDX(1, y) ];  
       }
     }
@@ -138,7 +147,7 @@ int main(int argc, char **argv)
 #pragma omp parallel for schedule(static)
       for (int y = 1; y <= sizey; ++y)
       {
-        __builtin_prefetch(&data_old[IDX(1, y + 16)], 0, 1);
+        __builtin_prefetch(&data_old[IDX(1, y + 12)], 0, 1);
         buffers[SEND][EAST][y-1] = data_old[ IDX(sizex, y) ];
       }
     }
@@ -198,7 +207,7 @@ int main(int argc, char **argv)
 #pragma omp parallel for schedule(static)
       for (int y = 1; y <= sizey; ++y)
       {
-        __builtin_prefetch(&data_old[IDX(0, y + 16)], 0, 1);
+        __builtin_prefetch(&data_old[IDX(0, y + 12)], 0, 1);
         data_old[ IDX(0, y) ] = buffers[RECV][WEST][y-1];
       }
     }
@@ -208,7 +217,7 @@ int main(int argc, char **argv)
 #pragma omp parallel for schedule(static)
       for (int y = 1; y <= sizey; ++y)
       {
-      __builtin_prefetch(&data_old[IDX(0, y + 16)], 0, 1);
+      __builtin_prefetch(&data_old[IDX(0, y + 12)], 0, 1);
         data_old[ IDX(sizex+1, y) ] = buffers[RECV][EAST][y-1];
       }
     }
@@ -218,11 +227,12 @@ int main(int argc, char **argv)
     /*──────────────────────────────────────────────────────────────╮
     │                        update borders                         │
     ╰──────────────────────────────────────────────────────────────*/
-    update_NORTH( periodic, N, &planes[current], &planes[!current] );
-    update_SOUTH( periodic, N, &planes[current], &planes[!current] );
-    update_EAST ( periodic, N, &planes[current], &planes[!current] );
-    update_WEST ( periodic, N, &planes[current], &planes[!current] );
-    
+    //update_NORTH( periodic, N, &planes[current], &planes[!current] );
+    //update_SOUTH( periodic, N, &planes[current], &planes[!current] );
+    //update_EAST ( periodic, N, &planes[current], &planes[!current] );
+    //update_WEST ( periodic, N, &planes[current], &planes[!current] );
+    update_NORTH_SOUTH( periodic, N, &planes[current], &planes[!current] );
+    update_WEST_EAST  ( periodic, N, &planes[current], &planes[!current] );
 
 
 
@@ -233,15 +243,19 @@ int main(int argc, char **argv)
     /*──────────────────────────────────────────────────────────────╮
     │                            output                             │
     ╰──────────────────────────────────────────────────────────────*/
-    if ( output_energy_stat_perstep ) {
+    if ( output_energy_stat_perstep ) 
+    {
       output_energy_stat ( iter, &planes[!current], (iter+1) * Nsources*energy_per_source, Rank, &myCOMM_WORLD );
 
-      char filename[100];
-      sprintf( filename, "data_parallel/%d_plane_%05d.bin", Rank, iter );
-      int dump_status = dump(planes[!current].data, planes[!current].size, filename);
-      if (dump_status != 0)
+      if ( output_energy_stat_perstep > 1)
       {
-        fprintf(stderr, "Error in dump_status. Exit with %d\n", dump_status);
+        char filename[100];
+        sprintf( filename, "data_parallel/%d_plane_%05d.bin", Rank, iter );
+        int dump_status = dump(planes[!current].data, planes[!current].size, filename);
+        if (dump_status != 0)
+        {
+          fprintf(stderr, "Error in dump_status. Exit with %d\n", dump_status);
+        }
       }
     }
 
@@ -370,7 +384,7 @@ int initialize ( MPI_Comm *Comm,
       case 'n': *Niterations = atoi(optarg);
         break;
 
-      case 'o': *output_energy_stat = (atoi(optarg) > 0);
+      case 'o': *output_energy_stat = (atoi(optarg));
         break;
 
       case 'p': *periodic = (atoi(optarg) > 0);

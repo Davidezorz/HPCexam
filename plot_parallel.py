@@ -148,3 +148,6 @@ def main():
 if __name__ == "__main__":
     main()
 # python plot_parallel.py data_parallel -x 256 -y 256 --sx 2 --sy 2 -n 100 --save parallel.mp4
+
+# mpirun -np 4 ./main  -n 100 -o 0 -x 256 -y 256 -e 50
+

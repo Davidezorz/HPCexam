@@ -71,14 +71,26 @@ extern int update_SOUTH ( const int     ,
                                 plane_t *);
 
 extern int update_EAST ( const int     , 
-                          const vec2_t   ,
-                          const plane_t *,
+                         const vec2_t   ,
+                         const plane_t *,
                                 plane_t *);
 
-extern int update_WEST ( const int     , 
-                          const vec2_t   ,
-                          const plane_t *,
+extern int update_WEST ( const int      , 
+                         const vec2_t   ,
+                         const plane_t *,
                                 plane_t *);
+
+extern int update_NORTH_SOUTH( const int      , 
+                               const vec2_t   ,
+                               const plane_t *,
+                                     plane_t *);
+
+extern int update_WEST_EAST( const int      , 
+                             const vec2_t   ,
+                             const plane_t *,
+                                   plane_t *);
+
+
 
 
 extern int get_total_energy( plane_t *,
@@ -118,6 +130,24 @@ int dump (  const double *data,
             const char *filename);
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*──────────────────────────────────────────────────────────────╮
+│                         inject_energy                         │
+╰──────────────────────────────────────────────────────────────*/
+
+
 inline int inject_energy ( const int      periodic,
                            const int      Nsources,
                            const vec2_t  *Sources,
@@ -126,40 +156,48 @@ inline int inject_energy ( const int      periodic,
                            const vec2_t   N
                            )
 {
-    const uint register sizex = plane->size[_x_]+2;
+    const uint register sizex  = plane->size[_x_]+2;
+    const uint register sizey  = plane->size[_y_]+2;
+    const uint register fsizex = plane->size[_x_];
+    const uint register fsizey = plane->size[_y_];
     double * restrict data = plane->data;
     
    #define IDX( i, j ) ( (j)*sizex + (i) )
-    for (int s = 0; s < Nsources; s++)
-    {
-        int x = Sources[s][_x_];
-        int y = Sources[s][_y_];
-        
-        data[ IDX(x,y) ] += energy;
-            
-        if (periodic)
-        {
-            if ((N[_x_] == 1))
-            {
-                // propagate the boundaries if needed
-                // check the serial version
-                if (x == 1)
-                    data[IDX(sizex - 1, y)] += energy;
-                if (x == sizex - 2)
-                    data[(IDX(0, y))] += energy;
-            }
 
-            if ((N[_y_] == 1))
-            {
-                // propagate the boundaries if needed
-                // check the serial version
-                if (y == 1)
-                    data[IDX(x, plane->size[_y_] + 1)] += energy;
-                if (y == plane->size[_y_])
-                    data[IDX(x, 0)] += energy;
-            }
-        }               
+
+    if (periodic)
+    {
+        const uint register Nx1 = (N[_x_] == 1);
+        const uint register Ny1 = (N[_y_] == 1);
+
+        for (int s = 0; s < Nsources; s++)
+        {
+            int x = Sources[s][_x_];
+            int y = Sources[s][_y_];
+            
+            data[ IDX(x,y) ] += energy;
+
+            // propagate the boundaries
+            data[IDX(sizex - 1, y)] += energy*(x == 1)     *Nx1;
+            data[IDX(0,         y)] += energy*(x == fsizex)*Nx1;
+
+
+            data[IDX(x, fsizey + 1)] += energy*(y == 1)     *Ny1;
+            data[IDX(x, 0)]          += energy*(y == fsizey)*Ny1;
+        }
     }
+    else 
+    {
+        for (int s = 0; s < Nsources; s++)
+        {
+            int x = Sources[s][_x_];
+            int y = Sources[s][_y_];
+            
+            data[ IDX(x,y) ] += energy;
+        }
+    }
+
+
  #undef IDX
     
   return 0;
@@ -193,7 +231,7 @@ inline int update_center (const int     periodic,
 // export OMP_NUM_THREADS = 4
 #pragma omp parallel for simd schedule(static)
     for (uint j = 2; j < ysize; j++) {
-#pragma GCC unroll 4
+#pragma GCC unroll 2
         for ( uint i = 2; i < xsize; i++) {
             double result = old[ IDX(i,j) ] * 0.5;
             double sum_i = old[IDX(i-1, j)] + old[IDX(i+1, j)];
@@ -206,7 +244,6 @@ inline int update_center (const int     periodic,
             /*new[ IDX(i,j) ] =
                 old[ IDX(i,j) ] / 2.0 + ( old[IDX(i-1, j)] + old[IDX(i+1, j)] +
                                           old[IDX(i, j-1)] + old[IDX(i, j+1)] ) /4.0 / 2.0; */
-
         }
     }
 
@@ -217,7 +254,7 @@ inline int update_center (const int     periodic,
 
 
 
-
+/*
 if ( periodic ) {
         // we need to propagate only when we are alone row-wise or column-wise in the
         // grid of processors
@@ -242,6 +279,9 @@ if ( periodic ) {
 
 
     }
+
+*/
+
 
 
 inline int update_NORTH(const int      periodic, 
@@ -296,8 +336,6 @@ inline int update_SOUTH(const int      periodic,
     uint register j = ysize;
 #pragma omp parallel for schedule(static)
     for ( uint i = 1; i <= xsize; i++) {
-        __builtin_prefetch(&old[IDX(i, j + 16)], 0, 1);  // prefetch for read
-        __builtin_prefetch(&new[IDX(i, j + 16)], 1, 1);  // prefetch for write
         new[ IDX(i,j) ] =
             old[ IDX(i,j) ] / 2.0 + ( old[IDX(i-1, j)] + old[IDX(i+1, j)] +
                                       old[IDX(i, j-1)] + old[IDX(i, j+1)] ) /4.0 / 2.0;
@@ -311,7 +349,7 @@ inline int update_SOUTH(const int      periodic,
 
 
 
-inline int update_EAST( const int      periodic, 
+inline int update_WEST( const int      periodic, 
                         const vec2_t   N,
                         const plane_t *oldplane,
                               plane_t *newplane
@@ -345,7 +383,7 @@ inline int update_EAST( const int      periodic,
 
 
 
-inline int update_WEST( const int     periodic, 
+inline int update_EAST( const int     periodic, 
                         const vec2_t   N,
                         const plane_t *oldplane,
                               plane_t *newplane
@@ -364,6 +402,8 @@ inline int update_WEST( const int     periodic,
     uint register i = 1;
 #pragma omp parallel for schedule(static)
     for (uint j = 2; j < ysize; j++) {
+    __builtin_prefetch(&old[IDX(i, j + 16)], 0, 1);  // prefetch for read
+    __builtin_prefetch(&new[IDX(i, j + 16)], 1, 1);  // prefetch for write
         new[ IDX(i,j) ] =
             old[ IDX(i,j) ] / 2.0 + ( old[IDX(i-1, j)] + old[IDX(i+1, j)] +
                                       old[IDX(i, j-1)] + old[IDX(i, j+1)] ) /4.0 / 2.0;
@@ -372,6 +412,184 @@ inline int update_WEST( const int     periodic,
 #undef IDX
     return 0;
 }
+
+
+
+
+
+
+
+inline int update_NORTH_SOUTH( const int      periodic, 
+                               const vec2_t   N,
+                               const plane_t *oldplane,
+                                     plane_t *newplane
+                                ) 
+{
+    uint register fxsize = oldplane->size[_x_]+2;
+    uint register fysize = oldplane->size[_y_]+2;
+
+    uint register ysize = oldplane->size[_y_];
+    uint register xsize = oldplane->size[_x_];
+    
+#define IDX( i, j ) ( (j)*fxsize + (i) )
+
+
+    double * restrict old = oldplane->data;
+    double * restrict new = newplane->data;
+    
+
+    uint register j_north = 1;
+    uint register j_south = ysize;
+
+    int prefetch = 8;
+
+    if (periodic && (N[_y_] == 1))
+    {
+#pragma omp parallel for schedule(static)
+        for (uint i = 1; i < xsize; i++) 
+        {
+            double result_north = old[IDX(i,   j_north)  ] * 0.5;
+            double sum_i_north  = old[IDX(i-1, j_north)  ] + old[IDX(i+1, j_north)];
+            double sum_j_north  = old[IDX(i,   j_north-1)] + old[IDX(i,   j_north+1)];
+
+            result_north += (sum_i_north + sum_j_north) / 4 * 0.5;
+
+            double result_south = old[IDX(i,   j_south)  ] * 0.5;
+            double sum_i_south  = old[IDX(i-1, j_south)  ] + old[IDX(i+1, j_south)  ];
+            double sum_j_south  = old[IDX(i,   j_south-1)] + old[IDX(i,   j_south+1)];
+
+            result_south += (sum_i_south + sum_j_south) / 4 * 0.5;
+
+            //update
+            new[ IDX(i, j_north) ] = result_north;
+            new[ IDX(i, j_south) ] = result_south;
+
+
+            new[ IDX(i, 0) ]         = new[ IDX(i, ysize) ];    // we propagate east edge on west halo
+            new[ IDX(i, ysize + 1) ] = new[ IDX(i, 1)     ];    // we propagate west edge on east halo
+
+        }
+    }
+    else
+    {
+#pragma omp parallel for schedule(static)
+        for (uint i = 1; i < xsize; i++) 
+        {
+            double result_north = old[IDX(i,   j_north)  ] * 0.5;
+            double sum_i_north  = old[IDX(i-1, j_north)  ] + old[IDX(i+1, j_north)];
+            double sum_j_north  = old[IDX(i,   j_north-1)] + old[IDX(i,   j_north+1)];
+
+            result_north += (sum_i_north + sum_j_north) / 4 * 0.5;
+
+            double result_south = old[IDX(i,   j_south)  ] * 0.5;
+            double sum_i_south  = old[IDX(i-1, j_south)  ] + old[IDX(i+1, j_south)  ];
+            double sum_j_south  = old[IDX(i,   j_south-1)] + old[IDX(i,   j_south+1)];
+
+            result_south += (sum_i_south + sum_j_south) / 4 * 0.5;
+
+            //update
+            new[ IDX(i, j_north) ] = result_north;
+            new[ IDX(i, j_south) ] = result_south;
+        }
+
+    }
+
+
+#undef IDX
+    return 0;
+}
+
+
+
+
+
+
+inline int update_WEST_EAST( const int      periodic, 
+                             const vec2_t   N,
+                             const plane_t *oldplane,
+                                   plane_t *newplane
+                              ) 
+{
+    uint register fxsize = oldplane->size[_x_]+2;
+    uint register fysize = oldplane->size[_y_]+2;
+
+    uint register ysize = oldplane->size[_y_];
+    uint register xsize = oldplane->size[_x_];
+    
+#define IDX( i, j ) ( (j)*fxsize + (i) )
+
+
+    double * restrict old = oldplane->data;
+    double * restrict new = newplane->data;
+    
+
+    uint register i_east = 1;
+    uint register i_west = xsize;
+
+    int prefetch = 8;
+
+    if (periodic && (N[_x_] == 1))
+    {
+#pragma omp parallel for schedule(static)
+        for (uint j = 2; j < ysize; j++) 
+        {
+            __builtin_prefetch(&old[IDX(i_west, j + prefetch)], 0, 1);  // prefetch for read 
+            __builtin_prefetch(&new[IDX(i_west, j + prefetch)], 1, 1);  // prefetch for write
+
+            double result_east = old[IDX(i_east,j)   ] * 0.5;
+            double sum_i_east  = old[IDX(i_east-1, j)] + old[IDX(i_east+1, j)];
+            double sum_j_east  = old[IDX(i_east, j-1)] + old[IDX(i_east, j+1)];
+
+            result_east += (sum_i_east + sum_j_east) / 4 * 0.5;
+
+            double result_west = old[IDX(i_west,j)   ] * 0.5;
+            double sum_i_west  = old[IDX(i_west-1, j)] + old[IDX(i_west+1, j)];
+            double sum_j_west  = old[IDX(i_west, j-1)] + old[IDX(i_west, j+1)];
+
+            result_west += (sum_i_west + sum_j_west) / 4 * 0.5;
+
+            //update
+            new[ IDX(i_east, j) ] = result_east;
+            new[ IDX(i_west, j) ] = result_west;
+
+
+            new[ IDX(0, j) ]       = new[ IDX(xsize, j) ];    // we propagate east edge on west halo
+            new[ IDX(xsize+1, j) ] = new[ IDX(1, j)     ];    // we propagate west edge on east halo
+        }
+    }
+    else
+    {
+#pragma omp parallel for schedule(static)
+        for (uint j = 2; j < ysize; j++) 
+        {
+            __builtin_prefetch(&old[IDX(i_west, j + prefetch)], 0, 1);  // prefetch for read 
+            __builtin_prefetch(&new[IDX(i_west, j + prefetch)], 1, 1);  // prefetch for write
+
+            double result_east = old[IDX(i_east,j)   ] * 0.5;
+            double sum_i_east  = old[IDX(i_east-1, j)] + old[IDX(i_east+1, j)];
+            double sum_j_east  = old[IDX(i_east, j-1)] + old[IDX(i_east, j+1)];
+
+            result_east += (sum_i_east + sum_j_east) / 4 * 0.5;
+
+            double result_west = old[IDX(i_west,j)   ] * 0.5;
+            double sum_i_west  = old[IDX(i_west-1, j)] + old[IDX(i_west+1, j)];
+            double sum_j_west  = old[IDX(i_west, j-1)] + old[IDX(i_west, j+1)];
+
+            result_west += (sum_i_west + sum_j_west) / 4 * 0.5;
+
+            //update
+            new[ IDX(i_east, j) ] = result_east;
+            new[ IDX(i_west, j) ] = result_west;
+        }
+
+    }
+
+
+#undef IDX
+    return 0;
+}
+
+
 
 
 /*──────────────────────────────────────────────────────────────╮

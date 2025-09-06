@@ -80,15 +80,19 @@ extern int update_WEST ( const int      ,
                          const plane_t *,
                                 plane_t *);
 
-extern int update_NORTH_SOUTH( const int      , 
-                               const vec2_t   ,
+extern int update_NORTH_SOUTH( const int, 
+                               const vec2_t,
                                const plane_t *,
                                      plane_t *);
 
-extern int update_WEST_EAST( const int      , 
-                             const vec2_t   ,
+extern int update_WEST_EAST( const int, 
+                             const vec2_t,
                              const plane_t *,
-                                   plane_t *);
+                             const buffers_t *,
+                             const int *,
+                                   plane_t *
+                              );
+
 
 
 
@@ -254,33 +258,6 @@ inline int update_center (const int     periodic,
 
 
 
-/*
-if ( periodic ) {
-        // we need to propagate only when we are alone row-wise or column-wise in the
-        // grid of processors
-
-        if ( N[x] == 1 ) {
-            // propagate the boundaries as needed
-            // check the serial version
-            for (uint j = 1; j <= ysize; j++) {
-                new[ IDX(0,j) ] = new[ IDX(xsize,j) ]; // we propagate east edge on west halo
-                new[ IDX(xsize+1,j) ] = new[ IDX(1,j) ]; // we propagate west edge on east halo
-            }
-        }
-
-        if ( N[y] == 1 ) {
-                // propagate the boundaries as needed
-                // check the serial version
-            for (uint i = 1; i <= xsize; i++) {
-                new[ IDX(i, 0) ] = new[ IDX(i, ysize) ]; // propagate south edge on the north halo
-                new[ IDX(i, ysize+1) ] = new[ IDX(i,1) ]; // propagate north edge on the south halo
-            }
-        }
-
-
-    }
-
-*/
 
 
 
@@ -402,8 +379,8 @@ inline int update_EAST( const int     periodic,
     uint register i = 1;
 #pragma omp parallel for schedule(static)
     for (uint j = 2; j < ysize; j++) {
-    __builtin_prefetch(&old[IDX(i, j + 16)], 0, 1);  // prefetch for read
-    __builtin_prefetch(&new[IDX(i, j + 16)], 1, 1);  // prefetch for write
+    __builtin_prefetch(&old[IDX(i, j + 4)], 0, 1);  // prefetch for read
+    __builtin_prefetch(&new[IDX(i, j + 4)], 1, 1);  // prefetch for write
         new[ IDX(i,j) ] =
             old[ IDX(i,j) ] / 2.0 + ( old[IDX(i-1, j)] + old[IDX(i+1, j)] +
                                       old[IDX(i, j-1)] + old[IDX(i, j+1)] ) /4.0 / 2.0;
@@ -504,11 +481,21 @@ inline int update_NORTH_SOUTH( const int      periodic,
 
 
 
-inline int update_WEST_EAST( const int      periodic, 
-                             const vec2_t   N,
-                             const plane_t *oldplane,
-                                   plane_t *newplane
+/*
+inline int update_WEST_EAST( const int        periodic, 
+                             const vec2_t     N,
+                             const plane_t   *oldplane,
+                                   plane_t   *newplane
+                            ) */
+
+inline int update_WEST_EAST( const int        periodic, 
+                             const vec2_t     N,
+                             const plane_t   *oldplane,
+                             const buffers_t *buffers,
+                             const int       *neighbours,
+                                   plane_t   *newplane
                               ) 
+
 {
     uint register fxsize = oldplane->size[_x_]+2;
     uint register fysize = oldplane->size[_y_]+2;
@@ -526,8 +513,12 @@ inline int update_WEST_EAST( const int      periodic,
     uint register i_east = 1;
     uint register i_west = xsize;
 
+    const uint register thereIsWest = neighbours[WEST] != MPI_PROC_NULL;
+    const uint register thereIsEast = neighbours[EAST] != MPI_PROC_NULL;
+
     int prefetch = 8;
 
+    //printf("WEST: %d, EAST: %d \n", thereIsWest, thereIsEast);
     if (periodic && (N[_x_] == 1))
     {
 #pragma omp parallel for schedule(static)
@@ -535,6 +526,18 @@ inline int update_WEST_EAST( const int      periodic,
         {
             __builtin_prefetch(&old[IDX(i_west, j + prefetch)], 0, 1);  // prefetch for read 
             __builtin_prefetch(&new[IDX(i_west, j + prefetch)], 1, 1);  // prefetch for write
+
+            /**/
+            if (thereIsWest )
+            {
+                old[IDX(i_east-1, j)] = buffers[RECV][WEST][j-1];
+            }
+            if (thereIsEast) 
+            {
+                old[IDX(i_west+1, j)] = buffers[RECV][EAST][j-1];
+            }
+            
+            
 
             double result_east = old[IDX(i_east,j)   ] * 0.5;
             double sum_i_east  = old[IDX(i_east-1, j)] + old[IDX(i_east+1, j)];
@@ -564,6 +567,15 @@ inline int update_WEST_EAST( const int      periodic,
         {
             __builtin_prefetch(&old[IDX(i_west, j + prefetch)], 0, 1);  // prefetch for read 
             __builtin_prefetch(&new[IDX(i_west, j + prefetch)], 1, 1);  // prefetch for write
+
+            if (thereIsWest )
+            {
+                old[IDX(i_east-1, j)] = buffers[RECV][WEST][j-1];
+            }
+            if (thereIsEast) 
+            {
+                old[IDX(i_west+1, j)] = buffers[RECV][EAST][j-1];
+            }
 
             double result_east = old[IDX(i_east,j)   ] * 0.5;
             double sum_i_east  = old[IDX(i_east-1, j)] + old[IDX(i_east+1, j)];

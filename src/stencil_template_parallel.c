@@ -22,10 +22,9 @@
 
 
 // ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
-// ------------------------------------------------------------------
-    /*──────────────────────────────────────────────────────────────╮
-    │                               |                               │
-    ╰──────────────────────────────────────────────────────────────*/
+/*──────────────────────────────────────────────────────────────╮
+│                             MAIN                              │
+╰──────────────────────────────────────────────────────────────*/
 int main(int argc, char **argv)
 {
   MPI_Comm myCOMM_WORLD;
@@ -81,16 +80,14 @@ int main(int argc, char **argv)
     return 0;
   }
 
-  printf("\n");
-  printf("%d: N[_x_]: %d,  N[_y_]: %d,    S[_x_]: %d,  S[_y_]: %d\n", 
-    Rank, N[_x_], N[_y_], planes[0].size[_x_], planes[0].size[_y_]);
-  printf("\n");
-  
-  MPI_Barrier(myCOMM_WORLD);
+  double time_total   = MPI_Wtime();   /* take wall-clock time for everything */
+  double time_fill    = 0;             /* time for filling the buffer         */
+  double time_update  = 0;             /* time for updating plane             */
+  double time_refill  = 0;             /* time for refilling the borders      */
+  double time_borders = 0;             /* time for waiting and update borders */
 
   int current = OLD;
-  double t1 = MPI_Wtime();   /* take wall-clock time */
-  
+
   for (int iter = 0; iter < Niterations; ++iter)
   {
     printf("\riteration: %d", iter); fflush(stdout);
@@ -119,6 +116,8 @@ int main(int argc, char **argv)
     /*──────────────────────────────────────────────────────────────╮
     │                         set up buffer                         │
     ╰──────────────────────────────────────────────────────────────*/
+    double t_fill = MPI_Wtime();
+
     const uint register fxsize = planes[current].size[_x_]+2;
     const uint register sizex  = planes[current].size[_x_];
     const uint register sizey  = planes[current].size[_y_];
@@ -138,7 +137,7 @@ int main(int argc, char **argv)
 #pragma omp parallel for schedule(static)
       for (int y = 1; y <= sizey; ++y)
       {
-        __builtin_prefetch(&data_old[IDX(1, y + 12)], 0, 1); 
+        __builtin_prefetch(&data_old[IDX(1, y + 4)], 0, 1); 
         buffers[SEND][WEST][y-1] = data_old[ IDX(1, y) ];  
       }
     }
@@ -147,12 +146,13 @@ int main(int argc, char **argv)
 #pragma omp parallel for schedule(static)
       for (int y = 1; y <= sizey; ++y)
       {
-        __builtin_prefetch(&data_old[IDX(1, y + 12)], 0, 1);
+        __builtin_prefetch(&data_old[IDX(1, y + 4)], 0, 1);
         buffers[SEND][EAST][y-1] = data_old[ IDX(sizex, y) ];
       }
     }
 
-    
+    time_fill += MPI_Wtime() - t_fill;
+
     //printf("%d communication started...\n", Rank);
     //printf("NORTH: %d, SOUTH: %d, EAST: %d, WEST: %d\n", neighbours[NORTH], neighbours[SOUTH], neighbours[EAST], neighbours[WEST]);
     
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
 
 
 
-    
+    double t_update = MPI_Wtime();
 
     //printf("%d communication complete \n", Rank);
     /*──────────────────────────────────────────────────────────────╮
@@ -193,21 +193,25 @@ int main(int argc, char **argv)
     ╰──────────────────────────────────────────────────────────────*/
     update_center( periodic, N, &planes[current], &planes[!current] );
 
-
+    time_update += MPI_Wtime() - t_update;
 
 
     /*──────────────────────────────────────────────────────────────╮
     │                           copy back                           │
     ╰──────────────────────────────────────────────────────────────*/
 
-    MPI_Waitall(8, reqs, MPI_STATUSES_IGNORE);
+    double t_refill = MPI_Wtime();
 
+    MPI_Status status;
+    MPI_Waitall(8, reqs, MPI_STATUS_IGNORE);
+    
+    /*
     if (neighbours[WEST] != MPI_PROC_NULL) 
     {
 #pragma omp parallel for schedule(static)
       for (int y = 1; y <= sizey; ++y)
       {
-        __builtin_prefetch(&data_old[IDX(0, y + 12)], 0, 1);
+       __builtin_prefetch(&data_old[IDX(0, y + 16)], 0, 2);
         data_old[ IDX(0, y) ] = buffers[RECV][WEST][y-1];
       }
     }
@@ -217,24 +221,29 @@ int main(int argc, char **argv)
 #pragma omp parallel for schedule(static)
       for (int y = 1; y <= sizey; ++y)
       {
-      __builtin_prefetch(&data_old[IDX(0, y + 12)], 0, 1);
+      __builtin_prefetch(&data_old[IDX(0, y + 16)], 0, 2);
         data_old[ IDX(sizex+1, y) ] = buffers[RECV][EAST][y-1];
       }
     }
 
-    #undef IDX
-    
+#undef IDX
+    */
+
+    time_refill += MPI_Wtime() - t_refill;
     /*──────────────────────────────────────────────────────────────╮
     │                        update borders                         │
     ╰──────────────────────────────────────────────────────────────*/
+    double t_borders = MPI_Wtime();
+
     //update_NORTH( periodic, N, &planes[current], &planes[!current] );
     //update_SOUTH( periodic, N, &planes[current], &planes[!current] );
     //update_EAST ( periodic, N, &planes[current], &planes[!current] );
     //update_WEST ( periodic, N, &planes[current], &planes[!current] );
     update_NORTH_SOUTH( periodic, N, &planes[current], &planes[!current] );
-    update_WEST_EAST  ( periodic, N, &planes[current], &planes[!current] );
+    update_WEST_EAST  ( periodic, N, &planes[current], buffers, neighbours, &planes[!current]);
+    //update_WEST_EAST  ( periodic, N, &planes[current], &planes[!current]);
 
-
+    time_borders += MPI_Wtime() - t_borders;
 
     /* update */
     //update_plane( periodic, N, &planes[current], &planes[!current] );
@@ -263,9 +272,46 @@ int main(int argc, char **argv)
     current = !current;
   }
   
-  t1 = MPI_Wtime() - t1;
 
-  printf("\ntime: %f\n", t1);
+
+
+  /*────────────────────────────────────────────────────────────────╮
+  │                               end                               │
+  ╰────────────────────────────────────────────────────────────────*/
+  time_total = MPI_Wtime() - time_total;
+
+
+  double time_total_mean   = 0;
+  double time_fill_mean    = 0;
+  double time_update_mean  = 0;
+  double time_refill_mean  = 0;
+  double time_borders_mean = 0;
+
+  if ( Rank == 0 ) 
+  {
+    MPI_Reduce ( &time_total,   &time_total_mean,   1, MPI_DOUBLE, MPI_SUM, 0, myCOMM_WORLD);
+    MPI_Reduce ( &time_fill,    &time_fill_mean,    1, MPI_DOUBLE, MPI_SUM, 0, myCOMM_WORLD);
+    MPI_Reduce ( &time_update,  &time_update_mean,  1, MPI_DOUBLE, MPI_SUM, 0, myCOMM_WORLD);
+    MPI_Reduce ( &time_refill,  &time_refill_mean,  1, MPI_DOUBLE, MPI_SUM, 0, myCOMM_WORLD);
+    MPI_Reduce ( &time_borders, &time_borders_mean, 1, MPI_DOUBLE, MPI_SUM, 0, myCOMM_WORLD);
+  }
+  else{
+    MPI_Reduce ( &time_total,   0x0, 1, MPI_DOUBLE, MPI_SUM, 0, myCOMM_WORLD);
+    MPI_Reduce ( &time_fill,    0x0, 1, MPI_DOUBLE, MPI_SUM, 0, myCOMM_WORLD);
+    MPI_Reduce ( &time_update,  0x0, 1, MPI_DOUBLE, MPI_SUM, 0, myCOMM_WORLD);
+    MPI_Reduce ( &time_refill,  0x0, 1, MPI_DOUBLE, MPI_SUM, 0, myCOMM_WORLD);
+    MPI_Reduce ( &time_borders, 0x0, 1, MPI_DOUBLE, MPI_SUM, 0, myCOMM_WORLD);
+  }
+
+  if(Rank == 0){
+    printf("\ntime total:                 %f\n", time_total_mean  /Ntasks);
+    printf("\ntime for filling buffers:   %f\n", time_fill_mean   /Ntasks);
+    printf("\ntime for update planes:     %f\n", time_update_mean /Ntasks);
+    printf("\ntime for refilling borders: %f\n", time_refill_mean /Ntasks);
+    printf("\ntime for compute borders:   %f\n", time_borders_mean/Ntasks); 
+  }
+
+
 
   output_energy_stat ( -1, &planes[!current], Niterations * Nsources*energy_per_source, Rank, &myCOMM_WORLD );
   

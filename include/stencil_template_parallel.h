@@ -173,7 +173,7 @@ inline int inject_energy ( const int      periodic,
     {
         const uint register Nx1 = (N[_x_] == 1);
         const uint register Ny1 = (N[_y_] == 1);
-
+#pragma omp parallel for schedule(static)
         for (int s = 0; s < Nsources; s++)
         {
             int x = Sources[s][_x_];
@@ -192,6 +192,7 @@ inline int inject_energy ( const int      periodic,
     }
     else 
     {
+#pragma omp parallel for schedule(static)
         for (int s = 0; s < Nsources; s++)
         {
             int x = Sources[s][_x_];
@@ -516,18 +517,19 @@ inline int update_WEST_EAST( const int        periodic,
     const uint register thereIsWest = neighbours[WEST] != MPI_PROC_NULL;
     const uint register thereIsEast = neighbours[EAST] != MPI_PROC_NULL;
 
-    int prefetch = 8;
+    const int prefetch = 8;
 
     //printf("WEST: %d, EAST: %d \n", thereIsWest, thereIsEast);
     if (periodic && (N[_x_] == 1))
     {
 #pragma omp parallel for schedule(static)
+#pragma omp unroll partial(8)
         for (uint j = 2; j < ysize; j++) 
         {
             __builtin_prefetch(&old[IDX(i_west, j + prefetch)], 0, 1);  // prefetch for read 
             __builtin_prefetch(&new[IDX(i_west, j + prefetch)], 1, 1);  // prefetch for write
 
-            /**/
+            /*
             if (thereIsWest )
             {
                 old[IDX(i_east-1, j)] = buffers[RECV][WEST][j-1];
@@ -535,18 +537,20 @@ inline int update_WEST_EAST( const int        periodic,
             if (thereIsEast) 
             {
                 old[IDX(i_west+1, j)] = buffers[RECV][EAST][j-1];
-            }
+            }*/
             
+            int value_west = thereIsWest ? buffers[RECV][WEST][j-1] : 0;
+            int value_east = thereIsEast ? buffers[RECV][EAST][j-1] : 0; 
             
 
             double result_east = old[IDX(i_east,j)   ] * 0.5;
-            double sum_i_east  = old[IDX(i_east-1, j)] + old[IDX(i_east+1, j)];
+            double sum_i_east  = value_west            + old[IDX(i_east+1, j)];
             double sum_j_east  = old[IDX(i_east, j-1)] + old[IDX(i_east, j+1)];
 
             result_east += (sum_i_east + sum_j_east) / 4 * 0.5;
 
             double result_west = old[IDX(i_west,j)   ] * 0.5;
-            double sum_i_west  = old[IDX(i_west-1, j)] + old[IDX(i_west+1, j)];
+            double sum_i_west  = old[IDX(i_west-1, j)] + value_east;
             double sum_j_west  = old[IDX(i_west, j-1)] + old[IDX(i_west, j+1)];
 
             result_west += (sum_i_west + sum_j_west) / 4 * 0.5;
@@ -563,28 +567,24 @@ inline int update_WEST_EAST( const int        periodic,
     else
     {
 #pragma omp parallel for schedule(static)
+#pragma omp unroll partial(4)
         for (uint j = 2; j < ysize; j++) 
         {
             __builtin_prefetch(&old[IDX(i_west, j + prefetch)], 0, 1);  // prefetch for read 
             __builtin_prefetch(&new[IDX(i_west, j + prefetch)], 1, 1);  // prefetch for write
-
-            if (thereIsWest )
-            {
-                old[IDX(i_east-1, j)] = buffers[RECV][WEST][j-1];
-            }
-            if (thereIsEast) 
-            {
-                old[IDX(i_west+1, j)] = buffers[RECV][EAST][j-1];
-            }
+            
+            int value_west = thereIsWest ? buffers[RECV][WEST][j-1] : 0;
+            int value_east = thereIsEast ? buffers[RECV][EAST][j-1] : 0; 
+            
 
             double result_east = old[IDX(i_east,j)   ] * 0.5;
-            double sum_i_east  = old[IDX(i_east-1, j)] + old[IDX(i_east+1, j)];
+            double sum_i_east  = value_west            + old[IDX(i_east+1, j)];
             double sum_j_east  = old[IDX(i_east, j-1)] + old[IDX(i_east, j+1)];
 
             result_east += (sum_i_east + sum_j_east) / 4 * 0.5;
 
             double result_west = old[IDX(i_west,j)   ] * 0.5;
-            double sum_i_west  = old[IDX(i_west-1, j)] + old[IDX(i_west+1, j)];
+            double sum_i_west  = old[IDX(i_west-1, j)] + value_east;
             double sum_j_west  = old[IDX(i_west, j-1)] + old[IDX(i_west, j+1)];
 
             result_west += (sum_i_west + sum_j_west) / 4 * 0.5;

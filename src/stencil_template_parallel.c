@@ -10,7 +10,7 @@
  *  └── mpirun -np 4 ./main  -n 100 -o 0 -e 300
  *  └── mpirun -np 4 ./main -x 256 -y 256 -n 150 -o 2 -e 175 -E 10 -p 1
 
-python plot_parallel.py data_parallel -x 256 -y 256 --sx 2 --sy 2 -n 100 --save parallel.mp4
+python plot_parallel.py data_parallel -x 256 -y 256 --sx 2 --sy 2 -n 150 --save parallel.mp4
 
  -fopt-info-vec-optimized
  */
@@ -94,11 +94,12 @@ int main(int argc, char **argv)
 
   for (int iter = 0; iter < Niterations; ++iter)
   {
+    /*
     if (Rank == 0)
     {
       printf("\riteration: %d", iter); fflush(stdout);
     }
-
+    */
     MPI_Request reqs[8];
     for (int i = 0; i < 8; ++i) reqs[i] = MPI_REQUEST_NULL;
     

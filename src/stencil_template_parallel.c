@@ -6,11 +6,11 @@
  *  mysizey   :   local y-extension of your patch
  *
  *  INSTRUCTION:
- *  ├── mpicc -fopenmp -o main -Iinclude src/stencil_template_parallel.c -O3
- *  └── mpirun -np 4 ./main  -n 100 -o 0 
+ *  ├── mpicc -fopenmp -o main -Iinclude src/stencil_template_parallel.c -O2 -march=native
+ *  └── mpirun -np 4 ./main  -n 100 -o 0 -e 300
  *  └── mpirun -np 4 ./main -x 256 -y 256 -n 150 -o 2 -e 175 -E 10 -p 1
 
- python plot_parallel.py data_parallel -x 256 -y 256 --sx 2 --sy 2 -n 100 --save parallel.mp4
+python plot_parallel.py data_parallel -x 256 -y 256 --sx 2 --sy 2 -n 100 --save parallel.mp4
 
  -fopt-info-vec-optimized
  */
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
     │                        east west update                       │
     ╰──────────────────────────────────────────────────────────────*/
 
-    // MPI_Waitall(8, reqs, MPI_STATUS_IGNORE);
+    //MPI_Waitall(8, reqs, MPI_STATUS_IGNORE);
     //update_NORTH( periodic, N, &planes[current], &planes[!current] );
     //update_SOUTH( periodic, N, &planes[current], &planes[!current] );
     //update_EAST ( periodic, N, &planes[current], &planes[!current] );
@@ -232,7 +232,6 @@ int main(int argc, char **argv)
         if (flag) received_east = 1;
       }
     }
-
 
     time_ew_comm += MPI_Wtime() - t_ew_comm;
 
@@ -266,7 +265,7 @@ int main(int argc, char **argv)
         if (flag) received_south = 1;
       }
     }
-
+    
     time_ns_comm += MPI_Wtime() - t_ns_comm;
 
 

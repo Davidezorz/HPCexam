@@ -15,6 +15,7 @@
 #include <omp.h>
 #include <mpi.h>
 
+#include <immintrin.h>  // vectorization 
 
 #define NORTH 0
 #define SOUTH 1
@@ -214,6 +215,112 @@ inline int inject_energy ( const int      periodic,
 │                         update_center                         │
 ╰──────────────────────────────────────────────────────────────*/
 
+
+/*
+ 
+inline int update_center(const int      periodic,
+                         const vec2_t   N,
+                         const plane_t *restrict oldplane,
+                               plane_t *restrict newplane)
+{
+    const uint fxsize = oldplane->size[_x_] + 2;
+    const uint xsize  = oldplane->size[_x_];
+    const uint ysize  = oldplane->size[_y_];
+
+    double *restrict old = oldplane->data;
+    double *restrict new = newplane->data;
+
+    __m256d half = _mm256_set1_pd(0.5);
+    __m256d quarter_half = _mm256_set1_pd(0.5 * 0.25); // (1/4)*0.5 = 0.125
+
+    #pragma omp parallel for
+    for (uint j = 2; j < ysize; j++) {
+        uint row = j * fxsize;
+
+        // Vectorized loop (process 4 elements per step)
+        uint i;
+        for (i = 2; i + 7 + 8 < xsize; i += 16)   // 3*8 doubles per iteration
+        {
+            uint idx1 = row + i;
+            uint idx2 = row + i + 4;
+            uint idx3 = row + i + 4 + 4;
+            uint idx4 = row + i + 4 + 4 + 4;
+
+
+            __builtin_prefetch(&old[idx1 -fxsize + 16 + 16], 0, 1);
+            __builtin_prefetch(&old[idx1 + 16 + 16], 0, 1);
+            __builtin_prefetch(&old[idx1 + fxsize + 16 + 16], 0, 1);
+            __builtin_prefetch(&new[idx1 + 16 + 16], 1, 1);
+
+            // ----- vector 1 -----
+            __m256d center1 = _mm256_loadu_pd(&old[idx1]);
+            __m256d left1   = _mm256_loadu_pd(&old[idx1 - 1]);
+            __m256d right1  = _mm256_loadu_pd(&old[idx1 + 1]);
+            __m256d sum_i1  = _mm256_add_pd(left1, right1);
+            __m256d up1     = _mm256_loadu_pd(&old[idx1 - fxsize]);
+            __m256d down1   = _mm256_loadu_pd(&old[idx1 + fxsize]);
+            __m256d sum_j1  = _mm256_add_pd(up1, down1);
+            __m256d result1 = _mm256_mul_pd(center1, half);
+            __m256d neighbor1 = _mm256_mul_pd(_mm256_add_pd(sum_i1, sum_j1), quarter_half);
+            result1 = _mm256_add_pd(result1, neighbor1);
+            _mm256_storeu_pd(&new[idx1], result1);
+
+            // ----- vector 2 -----
+            __m256d center2 = _mm256_loadu_pd(&old[idx2]);
+            __m256d left2   = _mm256_loadu_pd(&old[idx2 - 1]);
+            __m256d right2  = _mm256_loadu_pd(&old[idx2 + 1]);
+            __m256d sum_i2  = _mm256_add_pd(left2, right2);
+            __m256d up2     = _mm256_loadu_pd(&old[idx2 - fxsize]);
+            __m256d down2   = _mm256_loadu_pd(&old[idx2 + fxsize]);
+            __m256d sum_j2  = _mm256_add_pd(up2, down2);
+            __m256d result2 = _mm256_mul_pd(center2, half);
+            __m256d neighbor2 = _mm256_mul_pd(_mm256_add_pd(sum_i2, sum_j2), quarter_half);
+            result2 = _mm256_add_pd(result2, neighbor2);
+            _mm256_storeu_pd(&new[idx2], result2);
+
+            // ----- vector 3 -----
+            __m256d center3 = _mm256_loadu_pd(&old[idx3]);
+            __m256d left3   = _mm256_loadu_pd(&old[idx3 - 1]);
+            __m256d right3  = _mm256_loadu_pd(&old[idx3 + 1]);
+            __m256d sum_i3  = _mm256_add_pd(left3, right3);
+            __m256d up3     = _mm256_loadu_pd(&old[idx3 - fxsize]);
+            __m256d down3   = _mm256_loadu_pd(&old[idx3 + fxsize]);
+            __m256d sum_j3  = _mm256_add_pd(up3, down3);
+            __m256d result3 = _mm256_mul_pd(center3, half);
+            __m256d neighbor3 = _mm256_mul_pd(_mm256_add_pd(sum_i3, sum_j3), quarter_half);
+            result3 = _mm256_add_pd(result3, neighbor3);
+            _mm256_storeu_pd(&new[idx3], result3);
+
+            // ----- vector 4 -----
+            __m256d center4 = _mm256_loadu_pd(&old[idx4]);
+            __m256d left4   = _mm256_loadu_pd(&old[idx4 - 1]);
+            __m256d right4  = _mm256_loadu_pd(&old[idx4 + 1]);
+            __m256d sum_i4  = _mm256_add_pd(left4, right4);
+            __m256d up4     = _mm256_loadu_pd(&old[idx4 - fxsize]);
+            __m256d down4   = _mm256_loadu_pd(&old[idx4 + fxsize]);
+            __m256d sum_j4  = _mm256_add_pd(up4, down4);
+            __m256d result4 = _mm256_mul_pd(center4, half);
+            __m256d neighbor4 = _mm256_mul_pd(_mm256_add_pd(sum_i4, sum_j4), quarter_half);
+            result4 = _mm256_add_pd(result4, neighbor4);
+            _mm256_storeu_pd(&new[idx4], result4);
+        }
+
+        // Cleanup for remaining elements (scalar)
+        for (; i < xsize; i++) {
+            uint idx = row + i;
+            double result = old[idx] * 0.5;
+            double sum_i  = old[idx - 1] + old[idx + 1];
+            double sum_j  = old[idx - fxsize] + old[idx + fxsize];
+            new[idx] = result + (sum_i + sum_j) * 0.125;
+        }
+    }
+
+    return 0;
+}
+ */
+
+/* */
+
 inline int update_center (const int     periodic, 
                           const vec2_t   N,         // the grid of MPI tasks
                           const plane_t *oldplane,
@@ -246,9 +353,6 @@ inline int update_center (const int     periodic,
 
             new[ IDX(i,j) ] = result;
 
-            /*new[ IDX(i,j) ] =
-                old[ IDX(i,j) ] / 2.0 + ( old[IDX(i-1, j)] + old[IDX(i+1, j)] +
-                                          old[IDX(i, j-1)] + old[IDX(i, j+1)] ) /4.0 / 2.0; */
         }
     }
 

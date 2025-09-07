@@ -1,0 +1,19 @@
+Tasks are decomposed in a grid 1 x 1
+
+Task    0 ::    grid coordinates :   0,   0
+        neighbours: N   -1    E   -2    S   -2    W   -2
+
+
+Results:
+time total:                        135.405116
+
+time for filling buffers:          0.000120
+time for update planes:            134.419565
+
+time for waiting EAST  and WEST:   0.000040
+time for update  EAST  and WEST:   0.948052
+time for waiting NORTH and SOUTH:  0.000039
+time for update  NORTH and SOUTH:  0.027740
+
+time for handle borders:           0.975871
+total injected energy is 300000, system energy is 298369 ( in avg 0.00298369 per grid point)

@@ -247,9 +247,9 @@ inline int update_center(const int      periodic,
             uint idx4 = row + i + 4 + 4 + 4;
 
 
-            __builtin_prefetch(&old[idx1 -fxsize + 16 + 16], 0, 1);
-            __builtin_prefetch(&old[idx1 + 16 + 16], 0, 1);
-            __builtin_prefetch(&old[idx1 + fxsize + 16 + 16], 0, 1);
+            //__builtin_prefetch(&old[idx1 -fxsize + 16 + 16], 0, 1);
+            //__builtin_prefetch(&old[idx1 + 16 + 16], 0, 1);
+            //__builtin_prefetch(&old[idx1 + fxsize + 16 + 16], 0, 1);
             __builtin_prefetch(&new[idx1 + 16 + 16], 1, 1);
 
             // ----- vector 1 -----
@@ -263,7 +263,6 @@ inline int update_center(const int      periodic,
             __m256d result1 = _mm256_mul_pd(center1, half);
             __m256d neighbor1 = _mm256_mul_pd(_mm256_add_pd(sum_i1, sum_j1), quarter_half);
             result1 = _mm256_add_pd(result1, neighbor1);
-            _mm256_storeu_pd(&new[idx1], result1);
 
             // ----- vector 2 -----
             __m256d center2 = _mm256_loadu_pd(&old[idx2]);
@@ -276,7 +275,6 @@ inline int update_center(const int      periodic,
             __m256d result2 = _mm256_mul_pd(center2, half);
             __m256d neighbor2 = _mm256_mul_pd(_mm256_add_pd(sum_i2, sum_j2), quarter_half);
             result2 = _mm256_add_pd(result2, neighbor2);
-            _mm256_storeu_pd(&new[idx2], result2);
 
             // ----- vector 3 -----
             __m256d center3 = _mm256_loadu_pd(&old[idx3]);
@@ -289,7 +287,6 @@ inline int update_center(const int      periodic,
             __m256d result3 = _mm256_mul_pd(center3, half);
             __m256d neighbor3 = _mm256_mul_pd(_mm256_add_pd(sum_i3, sum_j3), quarter_half);
             result3 = _mm256_add_pd(result3, neighbor3);
-            _mm256_storeu_pd(&new[idx3], result3);
 
             // ----- vector 4 -----
             __m256d center4 = _mm256_loadu_pd(&old[idx4]);
@@ -302,6 +299,12 @@ inline int update_center(const int      periodic,
             __m256d result4 = _mm256_mul_pd(center4, half);
             __m256d neighbor4 = _mm256_mul_pd(_mm256_add_pd(sum_i4, sum_j4), quarter_half);
             result4 = _mm256_add_pd(result4, neighbor4);
+
+
+            // store
+            _mm256_storeu_pd(&new[idx1], result1);
+            _mm256_storeu_pd(&new[idx2], result2);
+            _mm256_storeu_pd(&new[idx3], result3);
             _mm256_storeu_pd(&new[idx4], result4);
         }
 
@@ -317,11 +320,12 @@ inline int update_center(const int      periodic,
 
     return 0;
 }
- */
+*/
 
 /* */
 
-inline int update_center (const int     periodic, 
+
+inline int update_center (const int      periodic, 
                           const vec2_t   N,         // the grid of MPI tasks
                           const plane_t *oldplane,
                                 plane_t *newplane
@@ -343,7 +347,7 @@ inline int update_center (const int     periodic,
 // export OMP_NUM_THREADS = 4
 #pragma omp parallel for simd schedule(static)
     for (uint j = 2; j < ysize; j++) {
-#pragma GCC unroll 2
+#pragma GCC unroll 4
         for ( uint i = 2; i < xsize; i++) {
             double result = old[ IDX(i,j) ] * 0.5;
             double sum_i = old[IDX(i-1, j)] + old[IDX(i+1, j)];
@@ -360,7 +364,6 @@ inline int update_center (const int     periodic,
  #undef IDX
   return 0;
 }
-
 
 
 
@@ -671,7 +674,7 @@ inline int update_WEST_EAST( const int        periodic,
     else
     {
 #pragma omp parallel for schedule(static)
-#pragma omp unroll partial(4)
+#pragma omp unroll partial(8)
         for (uint j = 2; j < ysize; j++) 
         {
             __builtin_prefetch(&old[IDX(i_west, j + prefetch)], 0, 1);  // prefetch for read 

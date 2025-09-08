@@ -13,7 +13,14 @@
 python plot_parallel.py data_parallel -x 256 -y 256 --sx 2 --sy 2 -n 150 --save parallel.mp4
 
  -fopt-info-vec-optimized
- */
+
+
+--> show EPYC
+srun --nodes=1 -n1 -c1 --time=00:10:00 --mem=10G -p EPYC --pty bash
+
+
+
+*/
 
 
 

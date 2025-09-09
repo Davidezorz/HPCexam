@@ -531,7 +531,7 @@ inline int update_NORTH_SOUTH( const int      periodic,
     if (periodic && (N[_y_] == 1))
     {
 #pragma omp parallel for schedule(static)
-        for (uint i = 1; i < xsize; i++) 
+        for (uint i = 1; i <= xsize; i++) 
         {
             double result_north = old[IDX(i,   j_north)  ] * 0.5;
             double sum_i_north  = old[IDX(i-1, j_north)  ] + old[IDX(i+1, j_north)];
@@ -558,7 +558,7 @@ inline int update_NORTH_SOUTH( const int      periodic,
     else
     {
 #pragma omp parallel for schedule(static)
-        for (uint i = 1; i < xsize; i++) 
+        for (uint i = 1; i <= xsize; i++) 
         {
             double result_north = old[IDX(i,   j_north)  ] * 0.5;
             double sum_i_north  = old[IDX(i-1, j_north)  ] + old[IDX(i+1, j_north)];
@@ -624,6 +624,18 @@ inline int update_WEST_EAST( const int        periodic,
     const uint register thereIsWest = neighbours[WEST] != MPI_PROC_NULL;
     const uint register thereIsEast = neighbours[EAST] != MPI_PROC_NULL;
 
+    /**/
+    if (thereIsWest )
+    {
+        old[IDX(i_east-1, 1)]     = buffers[RECV][WEST][0];
+        old[IDX(i_east-1, ysize)] = buffers[RECV][WEST][ysize-1];
+    }
+    if (thereIsEast) 
+    {   
+        old[IDX(i_west+1, 1)]     = buffers[RECV][EAST][0];
+        old[IDX(i_west+1, ysize)] = buffers[RECV][EAST][ysize-1];
+    }
+    
     const int prefetch = 8;
 
     //printf("WEST: %d, EAST: %d \n", thereIsWest, thereIsEast);
@@ -644,20 +656,20 @@ inline int update_WEST_EAST( const int        periodic,
             if (thereIsEast) 
             {
                 old[IDX(i_west+1, j)] = buffers[RECV][EAST][j-1];
-            }*/
-            
-            int value_west = thereIsWest ? buffers[RECV][WEST][j-1] : 0;
-            int value_east = thereIsEast ? buffers[RECV][EAST][j-1] : 0; 
+            }
+            */
+            double value_west = thereIsWest ? buffers[RECV][WEST][j-1] : 0;
+            double value_east = thereIsEast ? buffers[RECV][EAST][j-1] : 0; 
             
 
             double result_east = old[IDX(i_east,j)   ] * 0.5;
-            double sum_i_east  = value_west            + old[IDX(i_east+1, j)];
+            double sum_i_east  = old[IDX(i_east-1, j)] + old[IDX(i_east+1, j)];  //value_west
             double sum_j_east  = old[IDX(i_east, j-1)] + old[IDX(i_east, j+1)];
 
             result_east += (sum_i_east + sum_j_east) / 4 * 0.5;
 
             double result_west = old[IDX(i_west,j)   ] * 0.5;
-            double sum_i_west  = old[IDX(i_west-1, j)] + value_east;
+            double sum_i_west  = old[IDX(i_west-1, j)] +  old[IDX(i_west+1, j)];//value_east;
             double sum_j_west  = old[IDX(i_west, j-1)] + old[IDX(i_west, j+1)];
 
             result_west += (sum_i_west + sum_j_west) / 4 * 0.5;
@@ -679,13 +691,22 @@ inline int update_WEST_EAST( const int        periodic,
         {
             __builtin_prefetch(&old[IDX(i_west, j + prefetch)], 0, 1);  // prefetch for read 
             __builtin_prefetch(&new[IDX(i_west, j + prefetch)], 1, 1);  // prefetch for write
-            
-            int value_west = thereIsWest ? buffers[RECV][WEST][j-1] : 0;
-            int value_east = thereIsEast ? buffers[RECV][EAST][j-1] : 0; 
-            
+
+            /*
+            if (thereIsWest )
+            {
+                old[IDX(i_east-1, j)] = buffers[RECV][WEST][j-1];
+            }
+            if (thereIsEast) 
+            {
+                old[IDX(i_west+1, j)] = buffers[RECV][EAST][j-1];
+            }
+*/
+            double value_west= thereIsWest ? buffers[RECV][WEST][j-1] : 0;
+            double value_east= thereIsEast ? buffers[RECV][EAST][j-1] : 0; 
 
             double result_east = old[IDX(i_east,j)   ] * 0.5;
-            double sum_i_east  = value_west            + old[IDX(i_east+1, j)];
+            double sum_i_east  = value_west          + old[IDX(i_east+1, j)];
             double sum_j_east  = old[IDX(i_east, j-1)] + old[IDX(i_east, j+1)];
 
             result_east += (sum_i_east + sum_j_east) / 4 * 0.5;

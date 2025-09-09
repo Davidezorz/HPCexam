@@ -8,7 +8,7 @@
  *  INSTRUCTION:
  *  ├── mpicc -fopenmp -o main -Iinclude src/stencil_template_parallel.c -O2 -march=native
  *  └── mpirun -np 4 ./main  -n 100 -o 0 -e 300
- *  └── mpirun -np 4 ./main -x 256 -y 256 -n 150 -o 2 -e 175 -E 10 -p 1
+ *  └── mpirun -np 4 ./main -x 256 -y 256 -n 150 -o 2 -e 175 -p 1
 
 python plot_parallel.py data_parallel -x 256 -y 256 --sx 2 --sy 2 -n 150 --save parallel.mp4
 
@@ -17,6 +17,13 @@ python plot_parallel.py data_parallel -x 256 -y 256 --sx 2 --sy 2 -n 150 --save 
 
 --> show EPYC
 srun --nodes=1 -n1 -c1 --time=00:10:00 --mem=10G -p EPYC --pty bash
+
+
+
+
+tep ssh login 'davide.zorzetto01@gmail.com'  --provisioner cineca-hpc
+
+ssh dzorzett@login.leonardo.cineca.it
 
 
 

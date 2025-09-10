@@ -892,15 +892,20 @@ int memory_allocate ( const int       *neighbours  ,
     // manage the malloc fail
     return -1;
 
-  memset ( planes_ptr[OLD].data, 0, frame_size * sizeof(double) );
+  //memset ( planes_ptr[OLD].data, 0, frame_size * sizeof(double) );
 
   planes_ptr[NEW].data = (double*) malloc( frame_size * sizeof(double) );
   if ( planes_ptr[NEW].data == NULL )
     // manage the malloc fail
     return -1;
 
-  memset ( planes_ptr[NEW].data, 0, frame_size * sizeof(double) );
-
+  //memset ( planes_ptr[NEW].data, 0, frame_size * sizeof(double) );
+#pragma omp parallel for schedule(static)
+  for (int i = 0; i < frame_size; ++i)
+  {
+    planes_ptr[NEW].data[i] = 0;
+    planes_ptr[OLD].data[i] = 0;
+  }
 
   // ··················································
   // buffers for north and south communication 
@@ -920,22 +925,37 @@ int memory_allocate ( const int       *neighbours  ,
   // allocate buffers
   
 
-  int size = planes_ptr[OLD].size[_y_] * sizeof(double);
+  int size = planes_ptr[OLD].size[_y_] ;
 
-  if (neighbours[EAST] != MPI_PROC_NULL) {
-      buffers_ptr[SEND][EAST] = (double*) malloc(size);
-      buffers_ptr[RECV][EAST] = (double*) malloc(size);
+  if (neighbours[EAST] != MPI_PROC_NULL) 
+  {
+      buffers_ptr[SEND][EAST] = (double*) malloc(size* sizeof(double));
+      buffers_ptr[RECV][EAST] = (double*) malloc(size* sizeof(double));
 
-    if (buffers_ptr[SEND][EAST] == NULL && buffers_ptr[RECV][EAST] == NULL) 
+    if (buffers_ptr[SEND][EAST] == NULL || buffers_ptr[RECV][EAST] == NULL) 
       {fprintf(stderr, "buffers_ptr[EAST] allocation failed \n" ); return 1;}
+    
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < size; ++i)
+    {
+      buffers_ptr[SEND][EAST][i] = 0;
+      buffers_ptr[RECV][EAST][i] = 0;
+    }
   }
 
-  if (neighbours[WEST] != MPI_PROC_NULL) {
-    buffers_ptr[SEND][WEST] = (double*) malloc(size);
-    buffers_ptr[RECV][WEST] = (double*) malloc(size);
+  if (neighbours[WEST] != MPI_PROC_NULL) 
+  {
+    buffers_ptr[SEND][WEST] = (double*) malloc(size * sizeof(double));
+    buffers_ptr[RECV][WEST] = (double*) malloc(size * sizeof(double));
 
     if (buffers_ptr[SEND][WEST] == NULL && buffers_ptr[RECV][WEST] == NULL) 
       {fprintf(stderr, "buffers_ptr[WEST] allocation failed \n" ); return 1;}
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < size; ++i)
+    {
+      buffers_ptr[SEND][WEST][i] = 0;
+      buffers_ptr[RECV][WEST][i] = 0;
+    }
   }
 
 

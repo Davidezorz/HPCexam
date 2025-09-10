@@ -1,0 +1,14 @@
+Results:
+time total:                        16.345129
+
+time for filling buffers:          0.000264
+time for update planes:            16.218948
+
+time for waiting EAST  and WEST:   0.000047
+time for update  EAST  and WEST:   0.069423
+time for waiting NORTH and SOUTH:  0.000036
+time for update  NORTH and SOUTH:  0.038394
+
+time for handle borders:           0.107900
+total injected energy is 300000, system energy is 299004 ( in avg 0.00299004 per grid point)
+

@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1                  # total MPI tasks across nodes
 #SBATCH --ntasks-per-node=1
 
-#SBATCH --cpus-per-task=4           # OpenMP threads per MPI task
+#SBATCH --cpus-per-task=128         # OpenMP threads per MPI task
 #SBATCH --mem=0                     # use all available memory
 #SBATCH --partition=EPYC
 
@@ -28,9 +28,9 @@ mpicc -D_XOPEN_SOURCE=700 -O2 -std=c17 -fopenmp -march=native  -Iinclude   src/s
 
 # run
 for T in 1 4 16 32 64 128
-#for nt in 1 4
+#for T in 1 4
 do
     export OMP_NUM_THREADS=$T
     echo "Running with $T threads"
-    srun --ntasks=$P --cpus-per-task=$T --cpu-bind=cores ./main -o 0 -e 300 -v 1 > ../output/Orfeo/OpenMP/orfeo_N${N}P${P}T${T}.log
+    srun --ntasks=$P --cpus-per-task=$T --cpu-bind=cores ./main -o 0 -e 300 -v 1 > output/Orfeo/OpenMP/orfeo_N${N}P${P}T${T}.log
 done

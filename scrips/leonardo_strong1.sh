@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --nodes=32                   # number of nodes
+#SBATCH --nodes=1                   # number of nodes
 #SBATCH --cpus-per-task=8           # OpenMP threads per MPI task
 #SBATCH --ntasks-per-node=8         # how many task each node
 
@@ -7,7 +7,7 @@
 #SBATCH --partition dcgp_usr_prod
 #SBATCH -A uTS25_Tornator_0
 
-#SBATCH -t 00:00:30
+#SBATCH -t 00:03:00
 #SBATCH --job-name=HPC_Exam
 #SBATCH --exclusive
 # =======================================================
@@ -15,8 +15,8 @@
 # Load MPI module if needed
 module load openmpi/4.1.6--gcc--12.2.0
 
-N=32                                 # nodes       -> nodes
-P=256                                # processors  -> number of task
+N=4                                 # nodes       -> nodes
+P=8                                # processors  -> number of task
 T=8                                 # threads     -> CPU per task
 
 # Set OpenMP variables

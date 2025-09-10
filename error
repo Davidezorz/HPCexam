@@ -1,0 +1,469 @@
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3481
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3481
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3481
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3481
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3481
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3481
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3481
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3481
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3482
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3482
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3482
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3482
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3482
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3482
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3482
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: An invalid value was given for btl_tcp_if_include.  This
+value will be ignored.
+
+  Local host: lrdn3482
+  Value:      eth0
+  Message:    Unknown interface name
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+[lrdn3482:116371] *** An error occurred in MPI_Init_thread
+[lrdn3482:116371] *** reported by process [3442615574,8]
+[lrdn3482:116371] *** on a NULL communicator
+[lrdn3482:116371] *** Unknown error
+[lrdn3482:116371] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3482:116371] ***    and potentially your MPI job)
+[lrdn3482:116372] *** An error occurred in MPI_Init_thread
+[lrdn3482:116372] *** reported by process [3442615574,9]
+[lrdn3482:116372] *** on a NULL communicator
+[lrdn3482:116372] *** Unknown error
+[lrdn3482:116372] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3482:116372] ***    and potentially your MPI job)
+[lrdn3482:116373] *** An error occurred in MPI_Init_thread
+[lrdn3482:116373] *** reported by process [3442615574,10]
+[lrdn3482:116373] *** on a NULL communicator
+[lrdn3482:116373] *** Unknown error
+[lrdn3482:116373] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3482:116373] ***    and potentially your MPI job)
+[lrdn3482:116374] *** An error occurred in MPI_Init_thread
+[lrdn3482:116374] *** reported by process [3442615574,11]
+[lrdn3482:116374] *** on a NULL communicator
+[lrdn3482:116374] *** Unknown error
+[lrdn3482:116374] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3482:116374] ***    and potentially your MPI job)
+[lrdn3482:116375] *** An error occurred in MPI_Init_thread
+[lrdn3482:116375] *** reported by process [3442615574,12]
+[lrdn3482:116375] *** on a NULL communicator
+[lrdn3482:116375] *** Unknown error
+[lrdn3482:116375] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3482:116375] ***    and potentially your MPI job)
+[lrdn3482:116376] *** An error occurred in MPI_Init_thread
+[lrdn3482:116376] *** reported by process [3442615574,13]
+[lrdn3482:116376] *** on a NULL communicator
+[lrdn3482:116376] *** Unknown error
+[lrdn3482:116376] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3482:116376] ***    and potentially your MPI job)
+[lrdn3482:116377] *** An error occurred in MPI_Init_thread
+[lrdn3482:116377] *** reported by process [3442615574,14]
+[lrdn3482:116377] *** on a NULL communicator
+[lrdn3482:116377] *** Unknown error
+[lrdn3482:116377] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3482:116377] ***    and potentially your MPI job)
+[lrdn3482:116378] *** An error occurred in MPI_Init_thread
+[lrdn3482:116378] *** reported by process [3442615574,15]
+[lrdn3482:116378] *** on a NULL communicator
+[lrdn3482:116378] *** Unknown error
+[lrdn3482:116378] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3482:116378] ***    and potentially your MPI job)
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+[lrdn3481:135790] *** An error occurred in MPI_Init_thread
+[lrdn3481:135790] *** reported by process [3442615574,2]
+[lrdn3481:135790] *** on a NULL communicator
+[lrdn3481:135790] *** Unknown error
+[lrdn3481:135790] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3481:135790] ***    and potentially your MPI job)
+[lrdn3481:135789] *** An error occurred in MPI_Init_thread
+[lrdn3481:135789] *** reported by process [3442615574,1]
+[lrdn3481:135789] *** on a NULL communicator
+[lrdn3481:135789] *** Unknown error
+[lrdn3481:135789] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3481:135789] ***    and potentially your MPI job)
+[lrdn3481:135793] *** An error occurred in MPI_Init_thread
+[lrdn3481:135793] *** reported by process [3442615574,5]
+[lrdn3481:135793] *** on a NULL communicator
+[lrdn3481:135793] *** Unknown error
+[lrdn3481:135793] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3481:135793] ***    and potentially your MPI job)
+[lrdn3481:135794] *** An error occurred in MPI_Init_thread
+[lrdn3481:135794] *** reported by process [3442615574,6]
+[lrdn3481:135794] *** on a NULL communicator
+[lrdn3481:135794] *** Unknown error
+[lrdn3481:135794] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3481:135794] ***    and potentially your MPI job)
+[lrdn3481:135792] *** An error occurred in MPI_Init_thread
+[lrdn3481:135792] *** reported by process [3442615574,4]
+[lrdn3481:135792] *** on a NULL communicator
+[lrdn3481:135792] *** Unknown error
+[lrdn3481:135792] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3481:135792] ***    and potentially your MPI job)
+[lrdn3481:135795] *** An error occurred in MPI_Init_thread
+[lrdn3481:135795] *** reported by process [3442615574,7]
+[lrdn3481:135795] *** on a NULL communicator
+[lrdn3481:135795] *** Unknown error
+[lrdn3481:135795] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3481:135795] ***    and potentially your MPI job)
+[lrdn3481:135788] *** An error occurred in MPI_Init_thread
+[lrdn3481:135788] *** reported by process [3442615574,0]
+[lrdn3481:135788] *** on a NULL communicator
+[lrdn3481:135788] *** Unknown error
+[lrdn3481:135788] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3481:135788] ***    and potentially your MPI job)
+--------------------------------------------------------------------------
+MPI_INIT has failed because at least one MPI process is unreachable
+from another.  This *usually* means that an underlying communication
+plugin -- such as a BTL or an MTL -- has either not loaded or not
+allowed itself to be used.  Your MPI job will now abort.
+
+You may wish to try to narrow down the problem;
+
+ * Check the output of ompi_info to see which BTL/MTL plugins are
+   available.
+ * Run your application with MPI_THREAD_SINGLE.
+ * Set the MCA parameter btl_base_verbose to 100 (or mtl_base_verbose,
+   if using MTL-based communications) to see exactly which
+   communication plugins were considered and/or discarded.
+--------------------------------------------------------------------------
+[lrdn3481:135791] *** An error occurred in MPI_Init_thread
+[lrdn3481:135791] *** reported by process [3442615574,3]
+[lrdn3481:135791] *** on a NULL communicator
+[lrdn3481:135791] *** Unknown error
+[lrdn3481:135791] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[lrdn3481:135791] ***    and potentially your MPI job)
+slurmstepd: error: *** STEP 19813209.0 ON lrdn3481 CANCELLED AT 2025-09-10T17:19:57 ***
+srun: Job step aborted: Waiting up to 182 seconds for job step to finish.
+srun: error: lrdn3482: tasks 8-11,13-15: Killed
+srun: error: lrdn3482: task 12: Exited with exit code 1
+srun: error: lrdn3481: tasks 0-7: Killed

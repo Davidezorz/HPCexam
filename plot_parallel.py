@@ -80,7 +80,7 @@ def assemble_full_matrix(rank_files_map, x_size, y_size, SX, SY):
 def animate_frames(frames, interval=100, save=None):
     """Create and show or save a matplotlib animation."""
     fig, ax = plt.subplots()
-    im = ax.imshow(frames[0], cmap='hot', interpolation='nearest', origin='lower')
+    im = ax.imshow(frames[0], cmap='turbo', interpolation='nearest', origin='lower')
     cbar = plt.colorbar(im, ax=ax)
     cbar.set_label("Heat")
 

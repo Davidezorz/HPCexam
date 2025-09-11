@@ -1,0 +1,19 @@
+
+L2:                                  rd                wr
+D1  miss rate:         3.3% (       3.2%     +        3.5%  )
+LL miss rate:          0.6% (       0.3%     +        3.2%  )
+
+branch:
+Mispred rate:          2.8% (       2.2%     +       12.7%   )
+
+
+
+
+L3:                                  rd                wr
+D1  miss rate:         3.2% (       3.1%     +        3.4%  )
+LL miss rate:          0.1% (       0.0%     +        0.9%  )
+
+branch:
+Mispred rate:          2.7% (       2.2%     +       11.8%   )
+
+

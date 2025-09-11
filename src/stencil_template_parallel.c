@@ -23,7 +23,7 @@ srun --nodes=1 -n1 -c1 --time=00:10:00 --mem=10G -p EPYC --pty bash
 
 
 
-tep ssh login 'davide.zorzetto01@gmail.com'  --provisioner cineca-hpc
+step ssh login 'davide.zorzetto01@gmail.com'  --provisioner cineca-hpc
 
 ssh dzorzett@login.leonardo.cineca.it
 
@@ -902,13 +902,19 @@ int memory_allocate ( const int       *neighbours  ,
     return -1;
 
   //memset ( planes_ptr[NEW].data, 0, frame_size * sizeof(double) );
-#pragma omp parallel for schedule(static)
-  for (int i = 0; i < frame_size; ++i)
-  {
-    planes_ptr[NEW].data[i] = 0;
-    planes_ptr[OLD].data[i] = 0;
-  }
 
+  int fxsize = (planes_ptr[OLD].size[_x_]+2);
+  int fysize = (planes_ptr[OLD].size[_y_]+2);
+
+#pragma omp parallel for simd schedule(static)
+    for (uint j = 0; j < fysize; j++) 
+    {
+      for ( uint i = 0; i < fxsize; i++) 
+      {
+        planes_ptr[NEW].data[j*fxsize + i] = 0;
+        planes_ptr[OLD].data[j*fxsize + i] = 0;
+      }
+    }
   // ··················································
   // buffers for north and south communication 
   // are not really needed
@@ -959,7 +965,6 @@ int memory_allocate ( const int       *neighbours  ,
       buffers_ptr[RECV][WEST][i] = 0;
     }
   }
-
 
 
   // ··················································

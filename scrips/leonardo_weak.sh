@@ -54,4 +54,4 @@ start_time=$(date +%s.%N)
 srun --ntasks=$P --cpus-per-task=$T --cpu-bind=cores  ./main -x $x -y $y -p 1 -o 0 -e 300 -v 0 > leonardo_N${N}P${P}T${T}x${x}y${y}.log
 end_time=$(date +%s.%N)
 tot_time=$(echo "$end_time - $start_time" | bc)
-echo "TimeTotalFile: ${tot_time}" >> leonardo_N${N}P${P}T${T}.log
+echo "TimeTotalFile: ${tot_time}" >> leonardo_N${N}P${P}T${T}x${x}y${y}.log

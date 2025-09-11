@@ -344,7 +344,6 @@ inline int update_center (const int      periodic,
     double * restrict old = oldplane->data;
     double * restrict new = newplane->data;
     
-// export OMP_NUM_THREADS = 4
 #pragma omp parallel for simd schedule(static)
     for (uint j = 2; j < ysize; j++) {
 #pragma GCC unroll 4

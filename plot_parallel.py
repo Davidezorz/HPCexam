@@ -7,6 +7,7 @@ import os
 import re
 from glob import glob
 from collections import defaultdict
+import matplotlib.colors as mcolors
 
 
 def load_dump(filename, x_size, y_size):
@@ -80,22 +81,30 @@ def assemble_full_matrix(rank_files_map, x_size, y_size, SX, SY):
 def animate_frames(frames, interval=100, save=None):
     """Create and show or save a matplotlib animation."""
     fig, ax = plt.subplots()
-    im = ax.imshow(frames[0], cmap='turbo', interpolation='nearest', origin='lower')
+    norm = mcolors.Normalize(vmin=0, vmax=22)
+    im = ax.imshow(frames[0], cmap='turbo', interpolation='nearest', origin='lower', norm=norm)
     cbar = plt.colorbar(im, ax=ax)
-    cbar.set_label("Heat")
+    cbar.set_label("Temperature")
+    title = ax.set_title("Iteration number 0")
+    
+    def update(frame_idx):
+        im.set_array(frames[frame_idx])
+        # Update title with iteration number (frame index * 100)
+        title.set_text(f"Iteration number {frame_idx * 500}")
+        return [im, title]
 
-    def update(frame):
-        im.set_array(frame)
-        return [im]
-
-    ani = animation.FuncAnimation(fig, update, frames=frames, interval=interval, blit=True)
+    ani = animation.FuncAnimation(fig, update, frames=len(frames), 
+                                 interval=interval, blit=True)
 
     if save:
         print(f"Saving animation to {save}...")
+        ani.save(save, writer='ffmpeg', fps=24, dpi=220, bitrate=55000, savefig_kwargs={'facecolor': 'white', 'bbox_inches': 'tight'}, extra_args=['-crf', '18'])  # Lower CRF = better quality
+        """
         if save.endswith('.gif'):
-            ani.save(save, writer='pillow', fps=10)
+            ani.save(save, writer='pillow', fps=24)
         else:
-            ani.save(save, writer='ffmpeg', fps=10)
+            ani.save(save, writer='ffmpeg', fps=24)
+        """
     else:
         plt.show()
 

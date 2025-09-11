@@ -10,25 +10,22 @@
  *  └── mpirun -np 4 ./main  -n 100 -o 0 -e 300
  *  └── mpirun -np 4 ./main -x 256 -y 256 -n 250 -o 2 -e 175 -p 1
 
-mpicc -fopenmp -S -o main.s -Iinclude src/stencil_template_parallel.c -O2 -march=native
 
-python plot_parallel.py data_parallel -x 256 -y 256 --sx 2 --sy 2 -n 150 --save parallel.mp4
+Other usefull commads:
+assembly:
+  mpicc -fopenmp -S -o main.s -Iinclude src/stencil_template_parallel.c -O2 -march=native
+  -fopt-info-vec-optimized  -> vectorization info
 
- -fopt-info-vec-optimized
+python script:
+  python plot_parallel.py data_parallel -x 256 -y 256 --sx 2 --sy 2 -n 150 --save parallel.mp4
+
+complete long animation:
+  mpirun -np 4 ./main -x 1536 -y 1536 -n 200000 -o 2 -e 180 -p 1
+  python plot_parallel.py data_parallel -x 1536 -y 1536 --sx 2 --sy 2 -n 400 --save parallel.mp4
 
 
 --> show EPYC
 srun --nodes=1 -n1 -c1 --time=00:10:00 --mem=10G -p EPYC --pty bash
-
-
-
-
-step ssh login 'davide.zorzetto01@gmail.com'  --provisioner cineca-hpc
-
-ssh dzorzett@login.leonardo.cineca.it
-
-
-
 */
 
 
@@ -110,12 +107,9 @@ int main(int argc, char **argv)
 
   for (int iter = 0; iter < Niterations; ++iter)
   {
-    /*
-    if (Rank == 0)
-    {
-      printf("\riteration: %d", iter); fflush(stdout);
-    }
-    */
+    /**/
+    if (Rank == 0) {printf("\riteration: %d", iter); fflush(stdout);}
+    
     MPI_Request reqs[8];
     for (int i = 0; i < 8; ++i) reqs[i] = MPI_REQUEST_NULL;
     
@@ -151,13 +145,13 @@ int main(int argc, char **argv)
 
     double * restrict data_old = planes[current].data;
 
-  
+    /*the NORTH and SOUTH buffers are already contigous in memory*/
     buffers[SEND][NORTH] = data_old + IDX(1, 1); 
     buffers[SEND][SOUTH] = data_old + IDX(1, sizey); 
     buffers[RECV][NORTH] = data_old + IDX(1, 0);
     buffers[RECV][SOUTH] = data_old + IDX(1, sizey+1); 
 
-    if (neighbours[WEST] != MPI_PROC_NULL){
+    if (neighbours[WEST] != MPI_PROC_NULL){                  /*Fill the WEST buffer if there is*/
 #pragma omp parallel for schedule(static)
       for (int y = 1; y <= sizey; ++y)
       {
@@ -166,7 +160,7 @@ int main(int argc, char **argv)
       }
     }
 
-    if (neighbours[EAST] != MPI_PROC_NULL) {
+    if (neighbours[EAST] != MPI_PROC_NULL) {                 /*Fill the EAST buffer if there is*/
 #pragma omp parallel for schedule(static)
       for (int y = 1; y <= sizey; ++y)
       {
@@ -177,40 +171,37 @@ int main(int argc, char **argv)
 
     time_fill += MPI_Wtime() - t_fill;
 
-    //printf("%d communication started...\n", Rank);
-    //printf("NORTH: %d, SOUTH: %d, EAST: %d, WEST: %d\n", neighbours[NORTH], neighbours[SOUTH], neighbours[EAST], neighbours[WEST]);
-    
+
     /*──────────────────────────────────────────────────────────────╮
     │                         communication                         │
+    │                                                               │
+    │ Usage of non blocking communication with MPI_Irecv and        │
+    │ MPI_Irecv. We communicate only when the neighbour actually    │
+    │ exists.                                                       │
     ╰──────────────────────────────────────────────────────────────*/
+
     if (neighbours[NORTH] != MPI_PROC_NULL) {
-      //printf("%d: %p %p\n", Rank, buffers[RECV][NORTH], buffers[SEND][NORTH]);
       MPI_Irecv(buffers[RECV][NORTH], sizex, MPI_DOUBLE, neighbours[NORTH], 0, myCOMM_WORLD, &reqs[NORTH + 4]);
       MPI_Isend(buffers[SEND][NORTH], sizex, MPI_DOUBLE, neighbours[NORTH], 1, myCOMM_WORLD, &reqs[NORTH]);
     }
 
     if (neighbours[SOUTH] != MPI_PROC_NULL) {
-      //printf("%d: %p %p\n", Rank, buffers[RECV][SOUTH], buffers[SEND][SOUTH]);
       MPI_Irecv(buffers[RECV][SOUTH], sizex, MPI_DOUBLE, neighbours[SOUTH], 1, myCOMM_WORLD, &reqs[SOUTH + 4]);
       MPI_Isend(buffers[SEND][SOUTH], sizex, MPI_DOUBLE, neighbours[SOUTH], 0, myCOMM_WORLD, &reqs[SOUTH]);      
     }
 
     if (neighbours[EAST] != MPI_PROC_NULL) {
-      //printf("%d: %p %p\n", Rank,  buffers[RECV][EAST], buffers[SEND][EAST]);
       MPI_Irecv(buffers[RECV][EAST],  sizey, MPI_DOUBLE, neighbours[EAST],  2, myCOMM_WORLD, &reqs[EAST + 4]);
       MPI_Isend(buffers[SEND][EAST],  sizey, MPI_DOUBLE, neighbours[EAST],  3, myCOMM_WORLD, &reqs[EAST]);
     }
 
     if (neighbours[WEST] != MPI_PROC_NULL) {
-      //printf("%d: %p %p\n", Rank,  buffers[RECV][WEST], buffers[SEND][WEST]);
       MPI_Irecv(buffers[RECV][WEST],  sizey, MPI_DOUBLE, neighbours[WEST],  3, myCOMM_WORLD, &reqs[WEST + 4]);
       MPI_Isend(buffers[SEND][WEST],  sizey, MPI_DOUBLE, neighbours[WEST],  2, myCOMM_WORLD, &reqs[WEST]);
     }
 
 
 
-
-    //printf("%d communication complete \n", Rank);
     /*──────────────────────────────────────────────────────────────╮
     │         update the new plane except for the borders           │
     ╰──────────────────────────────────────────────────────────────*/
@@ -225,20 +216,13 @@ int main(int argc, char **argv)
     │                        east west update                       │
     ╰──────────────────────────────────────────────────────────────*/
 
-    //MPI_Waitall(8, reqs, MPI_STATUS_IGNORE);
-    //update_NORTH( periodic, N, &planes[current], &planes[!current] );
-    //update_SOUTH( periodic, N, &planes[current], &planes[!current] );
-    //update_EAST ( periodic, N, &planes[current], &planes[!current] );
-    //update_WEST ( periodic, N, &planes[current], &planes[!current] );
-    //update_WEST_EAST  ( periodic, N, &planes[current], &planes[!current]);
-
     double t_ew_comm = MPI_Wtime();
 
     int received_west = (neighbours[WEST] == MPI_PROC_NULL) ? 1 : 0;
     int received_east = (neighbours[EAST] == MPI_PROC_NULL) ? 1 : 0;
     int flag = 0;
 
-    while (!(received_west && received_east)) 
+    while (!(received_west && received_east))              /* Test if WEST and EAST communication is done*/
     {
       if (!received_west) {
         MPI_Test(&reqs[WEST + 4], &flag, MPI_STATUS_IGNORE);
@@ -271,7 +255,7 @@ int main(int argc, char **argv)
     flag = 0;
 
 
-    while (!(received_north && received_south)) 
+    while (!(received_north && received_south))              /* Test if NORTH and SOUTH communication is done*/
     {
       if (!received_north) {
         MPI_Test(&reqs[NORTH + 4], &flag, MPI_STATUS_IGNORE);
@@ -294,19 +278,20 @@ int main(int argc, char **argv)
     time_ns += MPI_Wtime() - t_ns;
     
 
-    /* update */
-    //update_plane( periodic, N, &planes[current], &planes[!current] );
+
     /*──────────────────────────────────────────────────────────────╮
     │                            output                             │
     ╰──────────────────────────────────────────────────────────────*/
     if ( output_energy_stat_perstep ) 
     {
-      output_energy_stat ( iter, &planes[!current], (iter+1) * Nsources*energy_per_source, Rank, &myCOMM_WORLD );
+      //output_energy_stat ( iter, &planes[!current], (iter+1) * Nsources*energy_per_source, Rank, &myCOMM_WORLD );
 
-      if ( output_energy_stat_perstep > 1)
+      int f_dump = 500;
+      if ( output_energy_stat_perstep > 1 && (iter % f_dump) == 0 )
       {
         char filename[100];
-        sprintf( filename, "data_parallel/%d_plane_%05d.bin", Rank, iter );
+        int  n_dump = iter/f_dump;
+        sprintf( filename, "data_parallel/%d_plane_%05d.bin", Rank, n_dump );
         int dump_status = dump(planes[!current].data, planes[!current].size, filename);
         if (dump_status != 0)
         {
@@ -906,6 +891,7 @@ int memory_allocate ( const int       *neighbours  ,
   int fxsize = (planes_ptr[OLD].size[_x_]+2);
   int fysize = (planes_ptr[OLD].size[_y_]+2);
 
+  /*initialization using openMP - Touch first policy*/
 #pragma omp parallel for simd schedule(static)
     for (uint j = 0; j < fysize; j++) 
     {
@@ -943,6 +929,7 @@ int memory_allocate ( const int       *neighbours  ,
     if (buffers_ptr[SEND][EAST] == NULL || buffers_ptr[RECV][EAST] == NULL) 
       {fprintf(stderr, "buffers_ptr[EAST] allocation failed \n" ); return 1;}
     
+    /*initialization using openMP - Touch first policy*/
 #pragma omp parallel for schedule(static)
     for (int i = 0; i < size; ++i)
     {
@@ -958,6 +945,8 @@ int memory_allocate ( const int       *neighbours  ,
 
     if (buffers_ptr[SEND][WEST] == NULL && buffers_ptr[RECV][WEST] == NULL) 
       {fprintf(stderr, "buffers_ptr[WEST] allocation failed \n" ); return 1;}
+
+    /*initialization using openMP - Touch first policy*/
 #pragma omp parallel for schedule(static)
     for (int i = 0; i < size; ++i)
     {
@@ -1037,7 +1026,6 @@ int dump ( const double *data, const uint size[2], const char *filename)
     for ( int j = 1; j <= size[1]; j++ ) {      
       const double * restrict line = data + j*(size[0] + 2);
       for ( int i = 1; i <= size[0]; i++ ) {
-        //int cut = line[i] < 100;
         array[i-1] = (float) line[i];
         
       }

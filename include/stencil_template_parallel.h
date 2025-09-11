@@ -212,13 +212,13 @@ inline int inject_energy ( const int      periodic,
 
 
 /*──────────────────────────────────────────────────────────────╮
-│                         update_center                         │
+│                       update_center AVX2                      │
 ╰──────────────────────────────────────────────────────────────*/
 
 
-/*
+/*center update with SIMD instruction*/
  
-inline int update_center(const int      periodic,
+inline int update_centerAVX2(const int      periodic,
                          const vec2_t   N,
                          const plane_t *restrict oldplane,
                                plane_t *restrict newplane)
@@ -320,10 +320,12 @@ inline int update_center(const int      periodic,
 
     return 0;
 }
-*/
 
-/* */
 
+
+/*──────────────────────────────────────────────────────────────╮
+│                         update_center                         │
+╰──────────────────────────────────────────────────────────────*/
 
 inline int update_center (const int      periodic, 
                           const vec2_t   N,         // the grid of MPI tasks
@@ -500,7 +502,9 @@ inline int update_EAST( const int     periodic,
 
 
 
-
+/*──────────────────────────────────────────────────────────────╮
+│                       update NORTH SOUTH                      │
+╰──────────────────────────────────────────────────────────────*/
 
 
 inline int update_NORTH_SOUTH( const int      periodic, 
@@ -588,12 +592,9 @@ inline int update_NORTH_SOUTH( const int      periodic,
 
 
 
-/*
-inline int update_WEST_EAST( const int        periodic, 
-                             const vec2_t     N,
-                             const plane_t   *oldplane,
-                                   plane_t   *newplane
-                            ) */
+/*──────────────────────────────────────────────────────────────╮
+│                        update WEST EAST                       │
+╰──────────────────────────────────────────────────────────────*/
 
 inline int update_WEST_EAST( const int        periodic, 
                              const vec2_t     N,
@@ -637,7 +638,7 @@ inline int update_WEST_EAST( const int        periodic,
     
     const int prefetch = 8;
 
-    //printf("WEST: %d, EAST: %d \n", thereIsWest, thereIsEast);
+
     if (periodic && (N[_x_] == 1))
     {
 #pragma omp parallel for schedule(static)
@@ -647,16 +648,6 @@ inline int update_WEST_EAST( const int        periodic,
             __builtin_prefetch(&old[IDX(i_west, j + prefetch)], 0, 1);  // prefetch for read 
             __builtin_prefetch(&new[IDX(i_west, j + prefetch)], 1, 1);  // prefetch for write
 
-            /*
-            if (thereIsWest )
-            {
-                old[IDX(i_east-1, j)] = buffers[RECV][WEST][j-1];
-            }
-            if (thereIsEast) 
-            {
-                old[IDX(i_west+1, j)] = buffers[RECV][EAST][j-1];
-            }
-            */
             double value_west = thereIsWest ? buffers[RECV][WEST][j-1] : 0;
             double value_east = thereIsEast ? buffers[RECV][EAST][j-1] : 0; 
             
@@ -691,16 +682,6 @@ inline int update_WEST_EAST( const int        periodic,
             __builtin_prefetch(&old[IDX(i_west, j + prefetch)], 0, 1);  // prefetch for read 
             __builtin_prefetch(&new[IDX(i_west, j + prefetch)], 1, 1);  // prefetch for write
 
-            /*
-            if (thereIsWest )
-            {
-                old[IDX(i_east-1, j)] = buffers[RECV][WEST][j-1];
-            }
-            if (thereIsEast) 
-            {
-                old[IDX(i_west+1, j)] = buffers[RECV][EAST][j-1];
-            }
-*/
             double value_west= thereIsWest ? buffers[RECV][WEST][j-1] : 0;
             double value_east= thereIsEast ? buffers[RECV][EAST][j-1] : 0; 
 

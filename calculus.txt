@@ -1,0 +1,13 @@
+Processors: 2 Intel Sapphire Rapids with 56 cores @ 2.0 GHz
+Total cores: 112 per node
+Memory: 512 GB DDR5 @ 4800 MHz
+Memory Bandwidth: \sim 280 GB/s per node
+
+
+
+6 FLOPs
+double -> 8 byte
+6*8 -> 48
+AI = FLOPS/byte = 6/48 1/8
+
+
